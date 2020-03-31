@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Text;
 
 namespace RoutledgeAssignmentFour.Models
@@ -43,8 +44,11 @@ namespace RoutledgeAssignmentFour.Models
             }
         }
 
-        public string Image { get; set; }
-        public string AbsoluteUrl { get; set; }
+        public string ImageString { get; set; }
+        public byte[] ImageBytes { get; set; }
+
+    //public Image image { get {  return Utilities.Imaging.Base64ToImage(ImageBase64); } }
+    public string AbsoluteUrl { get; set; }
 
         public string FullPathUrl
         {
@@ -67,7 +71,7 @@ namespace RoutledgeAssignmentFour.Models
                 FirstName = data[1];
                 LastName = data[2];
                 DateOfBirth = data[3];
-                Image = data[4];
+                ImageString = data[4];                
                 IsMe = false;
                 UniqueID = Guid.NewGuid();
             }

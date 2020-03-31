@@ -16,9 +16,9 @@ namespace RoutledgeAssignmentFour.Models.Utilities
     {
         
         /// <summary>
-        /// Take the filepath, image (for just me) and students data, adds it to a word document
+        /// Take the filepath, and students data, add it to a word document
         /// </summary>
-        public static void CreateWordprocessingDocument(string filepath, byte[] myimage, List<Student> students)
+        public static void CreateWordprocessingDocument(string filepath, List<Student> students)
         {
             // Create a document by supplying the filepath. 
             using (WordprocessingDocument wordDocument =
@@ -26,7 +26,8 @@ namespace RoutledgeAssignmentFour.Models.Utilities
             {
                 // Add a main document part. 
                 MainDocumentPart mainPart = wordDocument.AddMainDocumentPart();
-                ImagePart imagePart = mainPart.AddImagePart(ImagePartType.Jpeg);
+                
+                
                 // Create the document structure and add some text.
                 mainPart.Document = new Document();
                 Body body = mainPart.Document.AppendChild(new Body());
@@ -36,18 +37,17 @@ namespace RoutledgeAssignmentFour.Models.Utilities
 
                 foreach (var student in students)
                 {
+                    ImagePart imagePart = mainPart.AddImagePart(ImagePartType.Bmp);
+                    using (MemoryStream stream = new MemoryStream(student.ImageBytes))
+                    {
+                        imagePart.FeedData(stream);
+                    }
+                    var temp = mainPart.GetIdOfPart(imagePart);
                     Paragraph para2 = body.AppendChild(new Paragraph());
                     Run run2 = para2.AppendChild(new Run(
                     new Break() { Type = BreakValues.Page }));
-                    run2.AppendChild(new Text(student.FirstName + " " + student.LastName));
-                    if (student.IsMe == true)
-                    {
-                        using (FileStream stream = new FileStream(Constants.Locations.ImageSaveFile, FileMode.Open))
-                        {
-                            imagePart.FeedData(stream);
-                        }
-                        AddImageToBody(wordDocument, mainPart.GetIdOfPart(imagePart));
-                    }
+                    run2.AppendChild(new Text(student.FirstName + " " + student.LastName)); 
+                    AddImageToBody(wordDocument, student,temp);                  
 
                 }
             }
@@ -55,14 +55,14 @@ namespace RoutledgeAssignmentFour.Models.Utilities
         /// <summary>
         /// Take the image from above and defines it in xml format for insertion into .docx.
         /// </summary>  
-        private static void AddImageToBody(WordprocessingDocument wordDoc, string relationshipId)
+        private static void AddImageToBody(WordprocessingDocument wordDoc, Student student, string relationshipId)
         {
             int imageWidth = 0;
             int imageHeight = 0;
-            using (Bitmap bmp = new Bitmap(Constants.Locations.ImageSaveFile))
+            using (Bitmap bmp = Imaging.BytesToBitmap(student.ImageBytes) as Bitmap)
             {
-                imageWidth = bmp.Width*9525;
-                imageHeight = bmp.Height*9525;
+                imageWidth = bmp.Width * 9525;
+                imageHeight = bmp.Height * 9525;
             }
 
             // Define the reference of the image.
@@ -80,7 +80,7 @@ namespace RoutledgeAssignmentFour.Models.Utilities
                          new DW.DocProperties()
                          {
                              Id = (UInt32Value)1U,
-                             Name = "Picture of Robert"
+                             Name = "Picture of Student"
                          },
                          new DW.NonVisualGraphicFrameDrawingProperties(
                              new A.GraphicFrameLocks() { NoChangeAspect = true }),
